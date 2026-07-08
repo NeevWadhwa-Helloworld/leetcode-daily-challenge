@@ -1,63 +1,50 @@
-typedef struct TrieNode {
-    struct TrieNode* children[2];
-} TrieNode;
-
-TrieNode* createNode() {
-    TrieNode* node = (TrieNode*)malloc(sizeof(TrieNode));
-    node->children[0] = NULL;
-    node->children[1] = NULL;
-    return node;
+int trie[6200000][2];
+int nodeCount;
+void initTrie() {
+    memset(trie[0], 0, sizeof(trie[0]));
+    nodeCount = 1;
 }
-
-void insert(TrieNode* root, int num) {
-    TrieNode* curr = root;
+void insert(int num) {
+    int curr = 0;
     for (int i = 30; i >= 0; i--) {
         int bit = (num >> i) & 1;
-        if (curr->children[bit] == NULL) {
-            curr->children[bit] = createNode();
+        if (trie[curr][bit] == 0) {
+            trie[nodeCount][0] = 0;
+            trie[nodeCount][1] = 0;
+            trie[curr][bit] = nodeCount++;
         }
-        curr = curr->children[bit];
+        curr = trie[curr][bit];
     }
 }
 
-int getMaxXOR(TrieNode* root, int num) {
-    TrieNode* curr = root;
+int getMaxXOR(int num) {
+    int curr = 0;
     int maxXOR = 0;
-    
     for (int i = 30; i >= 0; i--) {
         int bit = (num >> i) & 1;
         int toggledBit = bit ^ 1;
-        if (curr->children[toggledBit] != NULL) {
+        if (trie[curr][toggledBit] != 0) {
             maxXOR |= (1 << i);
-            curr = curr->children[toggledBit];
+            curr = trie[curr][toggledBit];
         } else {
-            curr = curr->children[bit];
+            curr = trie[curr][bit];
         }
     }
     return maxXOR;
 }
 
-void freeTrie(TrieNode* root) {
-    if (root == NULL) return;
-    freeTrie(root->children[0]);
-    freeTrie(root->children[1]);
-    free(root);
-}
-
 int findMaximumXOR(int* nums, int numsSize) {
     if (numsSize < 2) return 0;
-    
-    TrieNode* root = createNode();
+    initTrie();
     int maxResult = 0;
-    insert(root, nums[0]);
+    insert(nums[0]);
     for (int i = 1; i < numsSize; i++) {
-        int currentMax = getMaxXOR(root, nums[i]);
+        int currentMax = getMaxXOR(nums[i]);
         if (currentMax > maxResult) {
             maxResult = currentMax;
         }
-        insert(root, nums[i]);
+        insert(nums[i]);
     }
-    freeTrie(root);
     
     return maxResult;
 }
